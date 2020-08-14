@@ -33,7 +33,7 @@ class Item(Resource):
             return ({"message": "Error: Item already exists"})
 
         try:
-            item.insert()
+            item.save_to_db()
         except:
             return {"message": "Error has occurred inserting the item"}, 500
 
@@ -41,34 +41,30 @@ class Item(Resource):
 
   
     def delete(self, name):
+        item = ItemModel.find_by_name(name)
+        if item:
+            item.delete_from_db()
+        
+        return {'message': 'Item deleted'}
 
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-        query = "DELETE FROM items WHERE name=?"
-        cursor.execute(query, (name,))
-        connection.commit()
-        connection.close()
-
-        return {"message": "Item deleted"}
+        
 
     
     def put(self, name):
 
         data = Item.parser.parse_args()
-        item = ItemModel.find_by_name(name)
-        updated_item = ItemModel(name,data["price"])
 
-        if item:
-            try:
-                updated_item.update()
-            except:
-                return ({"message": "An error has occurred updating the item price"}), 500
+        item = ItemModel.find_by_name(name)
+        
+
+        if item is None:
+            item = ItemModel(None,name,data['price'])
         else:
-            try:
-                updated_item.insert()
-            except:
-                return({"message": "An error has occurred creating the new item"}), 500
-        return updated_item.json()
+            item.price = data['price']
+        item.save_to_db()
+
+        return item.json()
+            
 
 
 class ItemList(Resource):
@@ -81,6 +77,6 @@ class ItemList(Resource):
 
         result_as_dict = []
         for result in results:
-            result_as_dict.append({'name': result[0], 'price': result[1]})
+            result_as_dict.append({'name': result[1], 'price': result[2]})
 
         return {"items": result_as_dict}, 200
