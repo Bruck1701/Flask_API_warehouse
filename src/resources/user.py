@@ -19,19 +19,12 @@ class UserRegister(Resource):
 
     def post(self):  # create a new user.
 
-        request_data = UserRegister.parser.parse_args()
+        data = UserRegister.parser.parse_args()
 
-        if UserModel.retrieve_by_username(request_data["username"]):
+        if UserModel.retrieve_by_username(data["username"]):
             return ({"message": "User already exists on the database"}), 400
 
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
+        user = UserModel(**data)
+        user.save_to_db()
 
-        insert_query = "INSERT INTO users VALUES (NULL,?,?)"
-        cursor.execute(
-            insert_query, (request_data["username"], request_data["password"]))
-
-        connection.commit()
-        connection.close()
-
-        return ({"message": "User {} created succesfully".format(request_data["username"])}), 201
+        return ({"message": "User {} created succesfully".format(data["username"])}), 201

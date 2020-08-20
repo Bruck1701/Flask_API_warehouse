@@ -53,10 +53,8 @@ class Item(Resource):
     def put(self, name):
 
         data = Item.parser.parse_args()
-
         item = ItemModel.find_by_name(name)
-        
-
+     
         if item is None:
             item = ItemModel(None,name,data['price'])
         else:
