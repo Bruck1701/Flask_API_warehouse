@@ -1,6 +1,5 @@
 from werkzeug.security import safe_str_cmp
 from models.user import UserModel
-import sqlite3
 
 
 def authenticate(username, password):
@@ -11,7 +10,7 @@ def authenticate(username, password):
     username: str
     password: str
     """
-    user = UserModel.retrieve_by_username(username)
+    user = UserModel.find_by_username(username)
 
     if user and safe_str_cmp(user.password, password):
         return user
@@ -19,4 +18,4 @@ def authenticate(username, password):
 
 def identity(payload):
     user_id = payload["identity"]
-    return UserModel.retrieve_by_id(user_id)
+    return UserModel.find_by_id(user_id)

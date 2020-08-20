@@ -1,4 +1,3 @@
-import sqlite3
 import json
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
@@ -11,6 +10,12 @@ class Item(Resource):
                         type=float,
                         required=True,
                         help="Cannot be blank"
+                        )
+
+    parser.add_argument("store_id",
+                        type=int,
+                        required=True,
+                        help="Every item needs a store Id"
                         )
 
     @jwt_required()
@@ -27,7 +32,7 @@ class Item(Resource):
     def post(self, name):
 
         data = Item.parser.parse_args()
-        item = ItemModel(name, data["price"])
+        item = ItemModel(name, data["price"],data["store_id"])
 
         if ItemModel.find_by_name(name):
             return ({"message": "Error: Item already exists"})
@@ -47,8 +52,6 @@ class Item(Resource):
         
         return {'message': 'Item deleted'}
 
-        
-
     
     def put(self, name):
 
@@ -56,7 +59,7 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
      
         if item is None:
-            item = ItemModel(None,name,data['price'])
+            item = ItemModel(name,data['price'],data['store_id'])
         else:
             item.price = data['price']
         item.save_to_db()
@@ -64,17 +67,6 @@ class Item(Resource):
         return item.json()
             
 
-
 class ItemList(Resource):
     def get(self):
-        connection = sqlite3.connect("data.db")
-        cursor = connection.cursor()
-        query = "SELECT * FROM items"
-        results = cursor.execute(query).fetchall()
-        connection.close()
-
-        result_as_dict = []
-        for result in results:
-            result_as_dict.append({'name': result[1], 'price': result[2]})
-
-        return {"items": result_as_dict}, 200
+        return {'items': [item.json() for item in ItemModel.query.all()]}
