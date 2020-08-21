@@ -1,2 +1,5 @@
 .vscode/
 flask_env/
+src/models/__pycache__/
+src/resources/__pycache__/
+src/__pycache__/
